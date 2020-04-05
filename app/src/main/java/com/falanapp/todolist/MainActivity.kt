@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity(), TaskAdapter.ItemClickListener {
             ): Boolean {
                 return false
             }
+
             // Called when a user swipes left or right on a ViewHolder
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, swipeDir: Int) {
                 // Here is where you'll implement swipe to delete
