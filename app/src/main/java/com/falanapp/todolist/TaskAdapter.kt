@@ -16,12 +16,7 @@ class TaskAdapter(private val listener: ItemClickListener, private val context: 
     RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
 
     private val DATE_FORMAT = "dd/MM/yyy"
-
-    // Member variable to handle item clicks
-    // Class variables for the List that holds task data and the Context
     private lateinit var mTaskEntries: List<TaskEntry>
-
-    // Date formatter
     private val dateFormat: SimpleDateFormat = SimpleDateFormat(DATE_FORMAT, Locale.getDefault())
 
     interface ItemClickListener {
@@ -38,9 +33,7 @@ class TaskAdapter(private val listener: ItemClickListener, private val context: 
             binding.root.setOnClickListener {
                 listener.onItemClickListener(itemId)
             }
-
         }
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
@@ -50,31 +43,31 @@ class TaskAdapter(private val listener: ItemClickListener, private val context: 
     }
 
     override fun getItemCount(): Int {
-        return mTaskEntries.size
+        if (::mTaskEntries.isInitialized) {
+            return mTaskEntries.size
+        }
+        return 0
+    }
+
+    fun getTasks(): List<TaskEntry> {
+        return mTaskEntries
     }
 
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
         val taskEntry = mTaskEntries[position]
-        val description = taskEntry.getDescriptipn()
+        val description = taskEntry.getDescription()
         val priority = taskEntry.getPriority()
-        val updateDate = dateFormat.format(taskEntry.getDate())
+        val updateDate = dateFormat.format(taskEntry.getUpdatedAt())
         holder.bind(taskEntry.getId(), listener)
 
         holder.taskDescriptionView.text = description
         holder.updatedAtView.text = updateDate
-
-        // Programmatically set the text and color for the priority TextView
-
         holder.priorityView.text = priority.toString()
 
         val priorityCircle =
             holder.priorityView.background as GradientDrawable
-        // Get the appropriate background color based on the priority
-        // Get the appropriate background color based on the priority
         val priorityColor = getPriorityColor(priority)
         priorityCircle.setColor(priorityColor)
-
-
     }
 
     fun setTasks(taskEntries: List<TaskEntry>) {

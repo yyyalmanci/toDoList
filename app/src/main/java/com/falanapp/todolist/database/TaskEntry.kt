@@ -1,25 +1,27 @@
 package com.falanapp.todolist.database
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.util.*
 
 
-@Entity(tableName = "task", primaryKeys = ["id"])
+@Entity(tableName = "task")
 data class TaskEntry(
     @PrimaryKey(autoGenerate = true)
     private val id: Int,
     private val description: String,
     private val priority: Int,
-    private val date: Date
+    @ColumnInfo(name = "updated_at")
+    private val updatedAt: Date
 ) {
     fun getId() = id
 
-    fun getDescriptipn() = description
+    fun getDescription() = description
 
     fun getPriority() = priority
 
-    fun getDate() = date
+    fun getUpdatedAt() = updatedAt
 
 
 }
