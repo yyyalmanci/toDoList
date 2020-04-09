@@ -1,2 +1,5 @@
 # toDoList
-Room exercises
+Room
+Koin
+MVVM
+exsercies app
