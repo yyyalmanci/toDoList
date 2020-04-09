@@ -1,6 +1,5 @@
 package com.falanapp.todolist.database
 
-import android.content.Context
 import androidx.room.*
 import io.reactivex.Completable
 import io.reactivex.Single
@@ -12,27 +11,6 @@ import io.reactivex.Single
 )
 @TypeConverters(DateConverter::class)
 abstract class TaskDb : RoomDatabase() {
-
-    companion object {
-        @Volatile
-        private var INSTANCE: TaskDb? = null
-
-        fun getInstance(context: Context): TaskDb {
-            synchronized(this) {
-                var instance = INSTANCE
-
-                if (instance == null) {
-                    instance = Room.databaseBuilder(
-                        context.applicationContext,
-                        TaskDb::class.java,
-                        "task_db"
-                    ).fallbackToDestructiveMigration().build()
-                    INSTANCE = instance
-                }
-                return instance
-            }
-        }
-    }
 
     abstract fun taskDao(): TaskDao
 }
@@ -49,7 +27,7 @@ interface TaskDao {
     fun insertTask(taskEntry: TaskEntry): Completable
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    fun updateTask(taskEntry: TaskEntry)
+    fun updateTask(taskEntry: TaskEntry): Completable
 
     @Delete
     fun deleteTask(taskEntry: TaskEntry): Completable

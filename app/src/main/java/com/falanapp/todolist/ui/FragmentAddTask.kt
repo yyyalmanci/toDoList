@@ -8,32 +8,28 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.RadioGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.falanapp.todolist.R
-import com.falanapp.todolist.database.TaskDb
 import com.falanapp.todolist.database.TaskEntry
 import com.falanapp.todolist.databinding.FragmentAddTaskBinding
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
+import org.koin.android.viewmodel.ext.android.viewModel
 import java.util.*
 
 class FragmentAddTask : Fragment() {
 
     private lateinit var binding: FragmentAddTaskBinding
 
-    private val compositeDisposable = CompositeDisposable()
-
     private val PRIORITY_HIGH = 1
     private val PRIORITY_MEDIUM = 2
     private val PRIORITY_LOW = 3
 
-    private lateinit var mDb: TaskDb
-    private val taskEntry = MutableLiveData<TaskEntry>()
-
     private lateinit var mEditText: EditText
     private lateinit var mRadioGroup: RadioGroup
     private lateinit var mButton: Button
+
+    private val viewModel: MainFragmentViewModel by viewModel()
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,20 +37,12 @@ class FragmentAddTask : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentAddTaskBinding.inflate(layoutInflater, container, false)
-        mDb = TaskDb.getInstance(requireContext())
-        loadTask(getArgs())
+        viewModel.loadTasksWithId(getArgs())
         initViews()
-        taskEntry.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
-            setValues(it)
+        viewModel.taskEntry.observe(viewLifecycleOwner, Observer {
+            setValues(it[0])
         })
         return binding.root
-    }
-
-    private fun loadTask(itemId: Int) {
-        compositeDisposable.add(
-            mDb.taskDao().loadTask(itemId).subscribeOn(Schedulers.io())
-                .subscribe({ taskEntry.postValue(it) }, {})
-        )
     }
 
     private fun getArgs(): Int {
@@ -67,7 +55,7 @@ class FragmentAddTask : Fragment() {
             mRadioGroup = radioGroup
             mButton = saveButton
             mButton.setOnClickListener {
-                onSaveButtonClicked()
+                onButtonClicked()
                 findNavController().navigateUp()
             }
         }
@@ -87,17 +75,21 @@ class FragmentAddTask : Fragment() {
         }
     }
 
-    private fun onSaveButtonClicked() {
+    private fun onButtonClicked() {
         val description = mEditText.text.toString()
         val priority = getPriorityFromViews()
         val date = Date()
-
-        val taskEntry = TaskEntry(0, description, priority, date)
-        compositeDisposable.add(
-            mDb.taskDao().insertTask(taskEntry).subscribeOn(Schedulers.io()).subscribe({
-            }, {})
-        )
+        setButtonWork(description, priority, date)
     }
+
+    private fun setButtonWork(description: String, priority: Int, date: Date) {
+        if (mButton.text == getString(R.string.update_button)) {
+            viewModel.updateTask(TaskEntry(getArgs(), description, priority, date))
+        } else {
+            viewModel.addTask(TaskEntry(0, description, priority, date))
+        }
+    }
+
 
     private fun getPriorityFromViews(): Int {
         var priority = 1
