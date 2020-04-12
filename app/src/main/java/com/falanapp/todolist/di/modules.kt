@@ -3,6 +3,7 @@ package com.falanapp.todolist.di
 import android.content.Context
 import androidx.room.Room.databaseBuilder
 import com.falanapp.todolist.database.TaskDb
+import com.falanapp.todolist.repository.TaskRepository
 import com.falanapp.todolist.ui.MainFragmentViewModel
 import org.koin.android.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -13,6 +14,10 @@ val viewModelModule = module {
 
 val databaseModule = module {
     single { getDatabase(get()) }
+}
+
+val repositoryModule = module {
+    single { TaskRepository(get()) }
 }
 
 private fun getDatabase(context: Context): TaskDb {
