@@ -2,11 +2,10 @@ package com.falanapp.todolist.ui
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.falanapp.todolist.database.TaskDb
 import com.falanapp.todolist.database.TaskEntry
-import io.reactivex.schedulers.Schedulers
+import com.falanapp.todolist.repository.TaskRepository
 
-class MainFragmentViewModel(private val taskDb: TaskDb) :
+class MainFragmentViewModel(private val taskRepository: TaskRepository) :
     BaseViewModel() {
 
     private val _taskEntry = MutableLiveData<List<TaskEntry>>()
@@ -15,18 +14,15 @@ class MainFragmentViewModel(private val taskDb: TaskDb) :
 
     fun deleteTask(taskEntry: TaskEntry) {
         runDisposable {
-            taskDb.taskDao().deleteTask(taskEntry)
-                .subscribeOn(Schedulers.io()).doOnComplete {
-                    taskDb.taskDao().loadAllTasks().subscribe({
-                        _taskEntry.postValue(it)
-                    }, {})
-                }.subscribe({}, {})
+            taskRepository.deleteTask(taskEntry).doOnComplete {
+                loadTasks()
+            }.subscribe({}, {})
         }
     }
 
     fun loadTasks() {
         runDisposable {
-            taskDb.taskDao().loadAllTasks().subscribeOn(Schedulers.io()).subscribe({
+            taskRepository.loadTasks().subscribe({
                 _taskEntry.postValue(it)
             }, {})
         }
@@ -34,7 +30,7 @@ class MainFragmentViewModel(private val taskDb: TaskDb) :
 
     fun loadTasksWithId(taskId: Int) {
         runDisposable {
-            taskDb.taskDao().loadTask(taskId).subscribeOn(Schedulers.io()).subscribe({
+            taskRepository.loadTasksWithId(taskId).subscribe({
                 _taskEntry.postValue(listOf(it))
             }, {})
         }
@@ -42,16 +38,13 @@ class MainFragmentViewModel(private val taskDb: TaskDb) :
 
     fun addTask(taskEntry: TaskEntry) {
         runDisposable {
-            taskDb.taskDao().insertTask(taskEntry).subscribeOn(Schedulers.io())
-                .subscribe({
-                }, {})
+            taskRepository.addTask(taskEntry).subscribe()
         }
     }
 
     fun updateTask(taskEntry: TaskEntry) {
         runDisposable {
-            taskDb.taskDao().updateTask(taskEntry)
-                .subscribeOn(Schedulers.io())
+            taskRepository.updateTask(taskEntry)
                 .subscribe({}, {})
         }
     }
